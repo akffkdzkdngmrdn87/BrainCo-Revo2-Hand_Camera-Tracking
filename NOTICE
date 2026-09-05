@@ -1,0 +1,36 @@
+BrainCo Revo2 Hand — Camera Hand Tracking
+Copyright (c) 2026 pi2jw
+
+이 제품은 Apache License 2.0 으로 배포되는 저작물을 포함합니다.
+This product is licensed under the Apache License, Version 2.0.
+
+────────────────────────────────────────────────────────────────────────────
+제3자 구성요소 (Third-party components)
+────────────────────────────────────────────────────────────────────────────
+
+본 저장소는 아래 구성요소를 **재배포하지 않습니다.**
+설치 스크립트가 각 배포처에서 내려받아 이 폴더 안의 가상환경에만 설치합니다.
+
+  MediaPipe                Apache License 2.0   Copyright (c) Google LLC
+  hand_landmarker.task     Apache License 2.0   Copyright (c) Google LLC
+  OpenCV (opencv-python)   Apache License 2.0   Copyright (c) OpenCV team
+  NumPy                    BSD 3-Clause         Copyright (c) NumPy Developers
+  Pillow                   MIT-CMU              Copyright (c) Jeffrey A. Clark and contributors
+  bc-stark-sdk             MIT License          Copyright (c) 2026 BrainCoTech
+  brainco-hand-sdk         MIT License          Copyright (c) 2026 BrainCoTech
+
+시험용 손동작 사진은 위키미디어 공용의 자유 이용 저작물이며, 저장소에 포함하지
+않습니다. 저작자·라이선스·출처는 저작권_출처.md 에 전부 밝혀 두었습니다.
+
+────────────────────────────────────────────────────────────────────────────
+상표 (Trademarks)
+────────────────────────────────────────────────────────────────────────────
+
+BrainCo, Revo2, RevoLimb 는 BrainCo, Inc. 의 상표입니다.
+그 밖에 이 저장소에 등장하는 상표는 각 소유자에게 귀속됩니다.
+
+본 저장소는 BrainCo, Inc. 를 비롯한 어느 회사와도 제휴·후원·보증 관계가 없는
+제3자 독립 구현입니다. 상표는 호환 대상 하드웨어와 동작 환경을 지칭하기 위해서만
+사용합니다.
+
+자세한 내용은 저작권_출처.md 를 보십시오.

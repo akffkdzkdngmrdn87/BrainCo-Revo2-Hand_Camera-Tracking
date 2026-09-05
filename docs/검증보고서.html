@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>BrainCo Revo2 카메라 손추적 — 조사·수정·검증 보고서</title>
+<style>
+  :root{ --ink:#1a1a1a; --sub:#555; --line:#d8d8d8; --bg:#fff;
+         --bad:#b3261e; --good:#1b5e20; --warn:#8a5a00; --accent:#0b4f8a; }
+  *{box-sizing:border-box}
+  body{ margin:0; background:#f4f4f2; color:var(--ink);
+        font-family:"Noto Sans KR","NanumGothic","Malgun Gothic",sans-serif;
+        line-height:1.75; font-size:15px; }
+  .page{ max-width:1000px; margin:0 auto; background:var(--bg); padding:44px 52px 72px; }
+  h1{ font-size:26px; margin:0 0 6px; letter-spacing:-.4px; }
+  h1+.meta{ color:var(--sub); font-size:13.5px; margin-bottom:30px;
+            padding-bottom:18px; border-bottom:3px solid var(--ink); }
+  h2{ font-size:20px; margin:44px 0 14px; padding-left:11px;
+      border-left:5px solid var(--accent); }
+  h3{ font-size:16.5px; margin:26px 0 8px; color:#000; }
+  p{ margin:9px 0; }
+  table{ border-collapse:collapse; width:100%; margin:14px 0; font-size:13.5px; }
+  th,td{ border:1px solid var(--line); padding:7px 10px; text-align:left;
+         vertical-align:top; }
+  th{ background:#eef1f4; font-weight:700; }
+  td.n,th.n{ text-align:right; font-variant-numeric:tabular-nums; }
+  code{ background:#f0f0ee; padding:1px 5px; border-radius:3px;
+        font-family:"D2Coding","NanumGothicCoding",monospace; font-size:13px; }
+  pre{ background:#1e1f22; color:#e6e6e6; padding:14px 16px; border-radius:5px;
+       overflow-x:auto; font-family:"D2Coding","NanumGothicCoding",monospace;
+       font-size:12.5px; line-height:1.6; }
+  .box{ border:1px solid var(--line); border-left:5px solid var(--accent);
+        background:#fafbfc; padding:12px 16px; margin:16px 0; }
+  .box.bad{ border-left-color:var(--bad); background:#fdf5f4; }
+  .box.good{ border-left-color:var(--good); background:#f4f9f4; }
+  .box.warn{ border-left-color:var(--warn); background:#fdfaf2; }
+  .box b{ display:block; margin-bottom:4px; }
+  .tag{ display:inline-block; padding:1px 8px; border-radius:10px; font-size:12px;
+        font-weight:700; }
+  .t-bad{ background:#fce8e6; color:var(--bad); }
+  .t-good{ background:#e4f0e4; color:var(--good); }
+  .t-warn{ background:#fbf0d9; color:var(--warn); }
+  ul,ol{ margin:8px 0 8px 22px; padding:0; }
+  li{ margin:4px 0; }
+  .src{ font-size:13px; color:var(--sub); }
+  .src a{ color:var(--accent); word-break:break-all; }
+  hr{ border:0; border-top:1px solid var(--line); margin:34px 0; }
+  @media print{
+    body{ background:#fff; font-size:11.5pt; }
+    .page{ max-width:none; padding:0; }
+    h2{ break-after:avoid; } table,pre,.box{ break-inside:avoid; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+<h1>BrainCo Revo2 로봇손 — 카메라 손추적 촬영<br>조사 · 수정 · 검증 보고서</h1>
+<div class="meta">
+  대상 저장소 <b style="display:inline">github.com/akffkdzkdngmrdn87/BrainCo-Revo2-Hand_Ubuntu-ROS2</b>
+  · 대상 파일 <code>src/hand_tracking_control.py</code><br>
+  작업일 2026-09-03 · 작업 환경 Ubuntu 22.04.5 / Intel i7-11700F / RTX 3060 Ti /
+  Python 3.10.12 / mediapipe 1.0.1 / opencv-python 5.0.0 · 추론 장치 <b style="display:inline">CPU</b><br>
+  검증 실물 · 카메라 Logitech C925e (<code>/dev/video0</code>) ·
+  로봇 <b style="display:inline">BrainCo Revo2 Basic 오른손 FW 0.0.10</b>
+  (<code>/dev/ttyUSB0</code>, FTDI FT231X, 460800bps, slave_id 127) · SDK <code>bc-stark-sdk 2.0.5</code>
+</div>
+
+<h2>1. 결론 요약</h2>
+
+<div class="box bad">
+  <b>기존 코드는 "미검증"이 아니라, 현행 환경에서 실행 즉시 중단되는 상태였다.</b>
+  저장소는 이 기능을 <b style="display:inline">미검증</b>으로 표기하고 있었으나,
+  실제로는 첫 줄에서 <code>AttributeError</code> 로 죽는다. 원인은 아래 ①이다.
+</div>
+
+<table>
+<tr><th style="width:30px">#</th><th>결함</th><th>확인 방법</th><th style="width:78px">등급</th></tr>
+<tr><td class="n">①</td>
+    <td><code>mediapipe.solutions.hands</code> 사용 — 현행 mediapipe 1.x 에서 이 모듈이 <b style="display:inline">삭제</b>되었다</td>
+    <td>이 PC 에 mediapipe 1.0.1 설치 후 실행 →
+        <code>AttributeError: module 'mediapipe' has no attribute 'solutions'</code></td>
+    <td><span class="tag t-bad">치명</span></td></tr>
+<tr><td class="n">②</td>
+    <td>손가락 배열이 틀렸다. <code>[엄지,검지,중지,약지,소지,손목]</code> 로 되어 있으나
+        확정값은 <code>[엄지,엄지보조,검지,중지,약지,소지]</code></td>
+    <td>같은 저장소 <code>hand_keyboard.py</code> 와, 제3자 독립 구현
+        <code>szwedk/brainco-revo2-hand-control</code> 의 <code>engine/protocol.py</code> 가 일치</td>
+    <td><span class="tag t-bad">치명</span></td></tr>
+<tr><td class="n">③</td>
+    <td>굽힘 계산이 <code>(1.5 − 손끝거리/뿌리거리) × 1000</code> 같은 임의 상수식이라
+        손 크기·카메라 거리에 따라 값이 달라진다</td>
+    <td>같은 자세의 손을 3배로 확대하면 결과가 달라짐. 관절 각도 방식은 동일 값 유지(자체시험 [4])</td>
+    <td><span class="tag t-warn">중대</span></td></tr>
+<tr><td class="n">④</td>
+    <td><code>cv2.putText</code> 로 한글 출력 — OpenCV 기본 폰트는 ASCII 전용</td>
+    <td>화면에 <code>???</code> 로 깨진다. Pillow 로 교체</td>
+    <td><span class="tag t-warn">중대</span></td></tr>
+<tr><td class="n">⑤</td>
+    <td>로봇과 ROS 2 가 둘 다 있어야만 실행된다 — <b style="display:inline">검증 자체가 불가능한 구조</b></td>
+    <td>"미검증" 상태가 고착된 근본 원인</td>
+    <td><span class="tag t-warn">중대</span></td></tr>
+</table>
+
+<div class="box good">
+  <b>조치 결과 — 웹캠에 손을 보이면 Revo2 가 실제로 따라 움직인다</b>
+  전면 재작성하여 <b style="display:inline">웹캠 / 영상파일 / 사진</b> 3가지 입력과
+  <b style="display:inline">모의 / ROS 2 / SDK직접</b> 3가지 출력을 지원하게 했다.
+  장비가 하나도 없어도 <code>--self-test</code> 로 계산 논리를 검증할 수 있다.
+  <b style="display:inline">로봇 실기 구동까지 확인 완료</b>(4.5절).
+  남은 미검증은 ROS 2 백엔드 하나뿐이며, 경로 A(SDK 직접)로 같은 일을 할 수 있다.
+</div>
+
+<h2>2. 조사 — 무엇을 근거로 판단했는가</h2>
+
+<h3>2.1 MediaPipe 레거시 API 의 지원 종료</h3>
+<p>
+구글은 2023년 3월, MediaPipe 의 기존 <b>Legacy Solutions</b>(<code>mp.solutions.*</code>) 지원을
+종료하고 <b>MediaPipe Tasks</b> API 로 이관했다. 기존 코드가 쓰던 <code>mp.solutions.hands</code> 가
+여기에 해당한다. 당시에는 경고만 나왔으나, 이 PC 에 설치된 <b>mediapipe 1.0.1</b> 에서는
+<code>mediapipe.solutions</code> 속성 자체가 존재하지 않는다.
+</p>
+<pre>$ python -c "import mediapipe as mp; mp.solutions.hands"
+AttributeError: module 'mediapipe' has no attribute 'solutions'</pre>
+<p>따라서 현행 표준인 <code>mediapipe.tasks.python.vision.HandLandmarker</code> 로 교체했다.
+Tasks API 는 모델 파일(<code>hand_landmarker.task</code>, 7.8MB)이 코드와 별도이므로,
+내려받기 절차를 설치 스크립트에 넣었다.</p>
+
+<h3>2.2 손가락 배열 순서 — 두 출처의 독립 일치</h3>
+<p>배열 순서는 자료마다 달라 혼선이 있던 항목이다. 서로 무관한 두 구현이 동일하게 지정한다.</p>
+<table>
+<tr><th>출처</th><th>배열</th><th>값 규약</th></tr>
+<tr><td>본 저장소 <code>src/hand_keyboard.py</code></td>
+    <td><code>[엄지, 엄지보조, 검지, 중지, 약지, 소지]</code></td><td>0 = 폄, 1000 = 쥠</td></tr>
+<tr><td>제3자 <code>szwedk/brainco-revo2-hand-control</code><br><code>engine/protocol.py</code></td>
+    <td><code>[thumb, thumb_aux, index, middle, ring, pinky]</code></td>
+    <td><code>POS_MIN 0</code> = fully open,<br><code>POS_MAX 1000</code> = fully closed</td></tr>
+<tr><td>기존 <code>hand_tracking_control.py</code></td>
+    <td><code>[엄지, 검지, 중지, 약지, 소지, 손목]</code> <span class="tag t-bad">오류</span></td>
+    <td>—</td></tr>
+</table>
+<div class="box bad">
+  <b>이 오류가 실제로 일으키는 증상</b>
+  '엄지보조' 자리에 검지 값이 들어간다. 검지를 굽히면 엄지가 회전하고,
+  그 뒤 모든 손가락이 한 칸씩 밀린다. 여섯 번째 칸에는 존재하지 않는 '손목' 값이 들어간다.
+</div>
+
+<h3>2.3 조사 출처</h3>
+<ol class="src">
+<li><b>Google AI Edge — Hand landmarks detection guide for Python</b> (MediaPipe Tasks API 공식 문서).
+    <a href="https://ai.google.dev/edge/mediapipe/solutions/vision/hand_landmarker/python">ai.google.dev/edge/mediapipe/solutions/vision/hand_landmarker/python</a>
+    — <code>HandLandmarkerOptions</code> 필드, <code>detect</code>/<code>detect_for_video</code>/<code>detect_async</code>,
+    결과 구조(<code>hand_landmarks</code>·<code>hand_world_landmarks</code>·<code>handedness</code>) 확인.</li>
+<li><b>MediaPipe Solutions guide — Legacy Solutions 지원 종료 안내</b> (2023-03-01 기준).
+    <a href="https://ai.google.dev/edge/mediapipe/solutions/guide">ai.google.dev/edge/mediapipe/solutions/guide</a></li>
+<li><b>google-ai-edge/mediapipe 이슈 #4142</b> — 2023년 3월 API 대량 폐기와 이관 경로에 대한 논의.
+    <a href="https://github.com/google/mediapipe/issues/4142">github.com/google/mediapipe/issues/4142</a></li>
+<li><b>google-ai-edge/mediapipe 이슈 #4931</b> (2023-11-03 등록) — 손등이 카메라를 향할 때
+    3D world landmark 의 손가락이 비정상적으로 말리는 문제 보고. 이 보고가 좌표계 선택의 출발점이 되었다.
+    <a href="https://github.com/google/mediapipe/issues/4931">github.com/google/mediapipe/issues/4931</a></li>
+<li><b>szwedk / brainco-revo2-hand-control</b> — Revo2 용 제3자 독립 구현.
+    <code>engine/protocol.py</code> 에서 손가락 배열과 값 규약을 교차 확인.
+    <a href="https://github.com/szwedk/brainco-revo2-hand-control">github.com/szwedk/brainco-revo2-hand-control</a></li>
+<li><b>BrainCoTech / brainco-hand-sdk</b> — 제조사 공식 SDK. 구 저장소
+    <code>stark-serialport-example</code> 에서 <b>이관됨</b>.
+    <a href="https://github.com/BrainCoTech/brainco-hand-sdk">github.com/BrainCoTech/brainco-hand-sdk</a></li>
+<li><b>TechShare-inc / ts-dexim-brainco</b>, <b>unitreerobotics / brainco_hand_service</b>,
+    <b>BrainCoTech / unitree-g1-brainco-hand</b> — Revo2 원격조작 사례 조사(참고).</li>
+<li>시험 사진 일체 — <b>위키미디어 공용(Wikimedia Commons)</b> 의 자유 이용 저작물.
+    파일별 원본명과 라이선스는 <code>tests/제스처_검증.py</code> 안에 명시했다.</li>
+</ol>
+<p class="src">
+※ 검색 상위에 노출된 블로그·커뮤니티 글은 대부분 레거시 <code>mp.solutions.hands</code> 예제를
+그대로 옮긴 것이어서, 지금 그대로 따라 하면 동작하지 않는다. 공식 문서와 실행 결과로만 판단했다.
+</p>
+
+<h2>3. 재작성 설계와 그 근거</h2>
+
+<h3>3.1 굽힘을 어떻게 잴 것인가 — 거리비에서 관절각으로</h3>
+<p>
+기존 방식은 손끝과 손목 사이 거리를 뿌리 관절과 손목 사이 거리로 나눈 비율에
+<code>1.5</code>, <code>2.0</code>, <code>500</code>, <code>1000</code> 같은 상수를 곱했다.
+이 값은 손 크기와 카메라 거리에 따라 달라진다.
+</p>
+<p>바꾼 방식은 <b>관절 각도</b>다. 관절이 굽은 각도는 손이 크든 작든, 멀든 가깝든 같다.</p>
+<table>
+<tr><th>축</th><th>계산</th><th>비고</th></tr>
+<tr><td>검지·중지·약지·소지</td>
+    <td>MCP·PIP·DIP 세 관절 각의 가중평균 (0.30 / 0.45 / 0.25)</td>
+    <td>PIP(둘째 마디)가 굽힘을 가장 잘 나타내므로 크게 반영</td></tr>
+<tr><td>엄지굽힘</td><td>MCP·IP 두 관절 각의 평균</td><td>관절이 하나 적고 가동폭이 좁다</td></tr>
+<tr><td>엄지벌림</td><td>엄지 방향(2→4)과 손등 MCP 줄(5→17)이 이루는 각</td>
+    <td>중수골 기준선은 굽지 않아 안정적</td></tr>
+</table>
+<p>로봇의 <code>엄지</code> 칸은 <b>굽힘 0.55 + 벌림 0.45</b> 로 섞는다.
+사람이 주먹을 쥘 때 엄지는 '굽는다'기보다 '손바닥 쪽으로 모이기' 때문이다.
+굽힘만 쓰면 주먹인데도 값이 474 에 그쳤고, 섞으니 616 으로 개선되었다.</p>
+
+<h3>3.2 보정 기준값 — 실측으로 정했다</h3>
+<p>
+각도를 0~1000 으로 바꾸려면 '완전히 편 각도'와 '완전히 쥔 각도'를 알아야 한다.
+짐작하지 않고, 손동작 실사진과 저장소 시연영상 1225프레임에서 실제 분포를 측정해 정했다.
+</p>
+<table>
+<tr><th>축</th><th class="n">관측 최소</th><th class="n">관측 최대</th><th class="n">채택 폄</th><th class="n">채택 쥠</th><th class="n">여유</th></tr>
+<tr><td>엄지굽힘</td><td class="n">112.9°</td><td class="n">172.6°</td><td class="n">175.0°</td><td class="n">110.0°</td><td class="n">2.4</td></tr>
+<tr><td>엄지벌림</td><td class="n">54.1°</td><td class="n">164.9°</td><td class="n">166.0°</td><td class="n">50.0°</td><td class="n">1.1</td></tr>
+<tr><td>검지</td><td class="n">91.4°</td><td class="n">171.1°</td><td class="n">179.0°</td><td class="n">91.0°</td><td class="n">0.4</td></tr>
+<tr><td>중지</td><td class="n">91.6°</td><td class="n">176.7°</td><td class="n">179.0°</td><td class="n">91.0°</td><td class="n">0.6</td></tr>
+<tr><td>약지</td><td class="n">93.1°</td><td class="n">178.0°</td><td class="n">179.0°</td><td class="n">91.0°</td><td class="n">1.0</td></tr>
+<tr><td>소지</td><td class="n">94.7°</td><td class="n">173.0°</td><td class="n">179.0°</td><td class="n">91.0°</td><td class="n">3.7</td></tr>
+</table>
+<p class="src">원자료: <code>결과/각도분포_실측.txt</code></p>
+<div class="box">
+  <b>가동범위는 넓히기만 하고 좁히지 않는다</b>
+  사람마다 손 가동범위가 다르므로, 실행 중 기준을 벗어나는 각이 나오면 자동으로 넓힌다.
+  <b style="display:inline">좁히기는 넣지 않았다.</b> 자동 축소를 넣으면 손을 가만히 두었을 때
+  기준폭이 계속 오그라들어, 미세한 떨림이 0~1000 전체로 증폭된다.
+  기준을 다시 잡으려면 실행 중 <code>c</code> 키를 누른다.
+</div>
+
+<h3>3.3 좌표계 선택 — screen2d</h3>
+<table>
+<tr><th>방식</th><th class="n">프레임간 평균변동(떨림)</th><th class="n">값 사용범위</th><th class="n">제스처 통과</th><th>판정</th></tr>
+<tr><td><b>screen2d</b> (화면 x,y)</td><td class="n">7.53</td><td class="n">314.7</td><td class="n">5 / 5</td>
+    <td><b>채택</b> — 대비가 가장 크다</td></tr>
+<tr><td>screen3d (화면 x,y,z)</td><td class="n">5.69</td><td class="n">297.2</td><td class="n">5 / 5</td>
+    <td>떨림은 낮으나 신호가 눌려 있다</td></tr>
+<tr><td>world (미터 3D)</td><td class="n">14.06</td><td class="n">484.5</td><td class="n">4 / 5</td>
+    <td>떨림 1.9배, 주먹에서 실패</td></tr>
+</table>
+<p>
+떨림만 보면 screen3d 가 낮지만, 다섯 제스처 <b>전부</b>에서 '폄과 쥠의 대비'는 screen2d 가 크다.
+<b>정확도가 큰 신호를 고르고 떨림은 소프트웨어로 잡는 편이 낫다</b>고 판단했다
+(<code>--alpha</code>·<code>--max-step</code>·<code>--deadband</code> 로 조절 가능).
+world 의 떨림이 큰 것은 이슈 #4931 의 보고와 일치한다.
+</p>
+<p class="src">원자료: <code>결과/좌표방식_비교.txt</code>, <code>결과/비교_*.csv</code></p>
+
+<h3>3.4 엄지보조(대립축) — 2D 카메라로는 복원되지 않는다</h3>
+<p>
+로봇의 <code>엄지보조</code>는 엄지를 손바닥 쪽으로 돌리는 축이다.
+사람 손에는 대응하는 '굽힘'이 없어, 무엇을 재야 할지 정해야 했다.
+기하 지표 5가지와 <code>follow</code>(엄지와 동일)를 실사진 5장으로 비교했다.
+각 후보에 가장 유리한 보정을 준 뒤 저장소 프리셋과의 절대오차를 쟀다.
+</p>
+<table>
+<tr><th>후보</th><th class="n">주먹<br>기대 1000</th><th class="n">브이<br>기대 1000</th><th class="n">OK<br>기대 750</th>
+    <th class="n">보<br>기대 0</th><th class="n">엄지척<br>기대 0</th><th class="n">평균오차</th><th class="n">최대오차</th></tr>
+<tr><td>C 엄지방향각</td><td class="n">1000</td><td class="n">889</td><td class="n">133</td><td class="n">109</td><td class="n">0</td><td class="n"><b>167</b></td><td class="n">617</td></tr>
+<tr><td>D 소지MCP거리</td><td class="n">1000</td><td class="n">607</td><td class="n">428</td><td class="n">0</td><td class="n">169</td><td class="n">177</td><td class="n"><b>393</b></td></tr>
+<tr><td><b>follow (엄지와 동일)</b></td><td class="n">742</td><td class="n">911</td><td class="n">152</td><td class="n">72</td><td class="n">115</td><td class="n">226</td><td class="n">598</td></tr>
+<tr><td>E 검지MCP거리</td><td class="n">1000</td><td class="n">522</td><td class="n">168</td><td class="n">0</td><td class="n">98</td><td class="n">232</td><td class="n">582</td></tr>
+<tr><td>A 중수골각</td><td class="n">1000</td><td class="n">127</td><td class="n">30</td><td class="n">115</td><td class="n">0</td><td class="n">342</td><td class="n">873</td></tr>
+<tr><td>F 투영위치</td><td class="n">0</td><td class="n">32</td><td class="n">951</td><td class="n">1000</td><td class="n">971</td><td class="n">828</td><td class="n">1000</td></tr>
+</table>
+<div class="box warn">
+  <b>핵심은 순위가 아니라, 어떤 후보도 OK 사인을 맞히지 못한다는 점이다.</b>
+  최상위 C 도 133 을 내놓아 프리셋 750 과 617 만큼 어긋난다.
+  사람 눈에는 OK 의 엄지가 '벌어져' 보이지만, 로봇은 엄지를 안으로 돌려야 검지와 맞닿기 때문이다.
+  <b style="display:inline">이 값은 사람 손 기하가 아니라 로봇 기구학이 정한다.</b>
+  2D 카메라 한 대로는 원리적으로 복원할 수 없다.
+</div>
+<p><b>따라서 기본값은 <code>--thumb-aux follow</code>(엄지보조 = 엄지)로 정했다.</b>
+숫자상 C(167)가 follow(226)보다 근소하게 낫지만 표본 5장 안의 잡음과 구분되지 않는 반면,
+follow 를 뒷받침하는 근거는 측정과 독립적이고 더 단단하다.</p>
+<ul>
+<li>본 저장소 <code>hand_keyboard.py</code> 의 제스처 <b>9개 중 7개</b>에서 <code>엄지보조 == 엄지</code>.
+    나머지 2개도 OK +150, 하트 +100 차이뿐이다.</li>
+<li>제3자 구현 <code>szwedk/.../protocol.py</code> 의 POSES 에서도
+    open·fist·point·peace·gun·claw·three·rock·thumbs 가 모두 일치한다.</li>
+<li>엄지와 엄지보조가 함께 움직여, 두 축이 따로 놀아 엄지가 어정쩡한 자세로 걸리는 일이 없다.</li>
+</ul>
+<p class="src">원자료: <code>결과/엄지축_산출식_비교.txt</code></p>
+
+<h3>3.5 안전 설계</h3>
+<ul>
+<li>시작할 때와 끝날 때 <b>반드시 손을 편다</b>(전 손가락 0). 저장소 전체의 규칙과 같다.</li>
+<li>손을 놓치면 마지막 자세를 유지하다가 <code>--relax-timeout</code>(기본 3초) 뒤 스스로 편다.</li>
+<li>연결 실패·중단·예외 어느 경로로 끝나도 <code>finally</code> 에서 손을 펴고 포트를 닫는다.</li>
+<li>떨림 억제 3중: 지수이동평균 → 1회 최대 변화량 제한 → 불감대(모터 채터링 방지).</li>
+<li>전송률 제한(기본 20Hz). SDK 백엔드는 큐에 <b>가장 최신 목표 하나만</b> 두어 명령이 밀리지 않는다.</li>
+</ul>
+
+<h2>4. 검증 결과</h2>
+
+<h3>4.1 계산 논리 자체시험 <code>--self-test</code></h3>
+<table>
+<tr><th style="width:34px">#</th><th>항목</th><th>확인 내용</th><th style="width:60px">결과</th></tr>
+<tr><td class="n">1</td><td>각도 계산</td><td>직각 90.0000° / 일직선 180.0000° / 같은 방향 0.0000°</td><td><span class="tag t-good">통과</span></td></tr>
+<tr><td class="n">2</td><td>배열 순서</td><td><code>[엄지, 엄지보조, 검지, 중지, 약지, 소지]</code></td><td><span class="tag t-good">통과</span></td></tr>
+<tr><td class="n">3</td><td>단조성</td><td>굽힘 0 → 1 로 갈수록 여섯 축 모두 값이 증가</td><td><span class="tag t-good">통과</span></td></tr>
+<tr><td class="n">4</td><td>크기 불변성</td><td>손을 3배로 키워도 같은 값 — 구판 거리비 방식의 결함 확인</td><td><span class="tag t-good">통과</span></td></tr>
+<tr><td class="n">5</td><td>떨림 억제</td><td>최대 변화량 제한 · 불감대 동작</td><td><span class="tag t-good">통과</span></td></tr>
+<tr><td class="n">6</td><td>엄지보조</td><td><code>follow</code>/<code>geom</code>/<code>fixed</code> 세 방식과 부작용 없음</td><td><span class="tag t-good">통과</span></td></tr>
+<tr><td class="n">7</td><td>최소 해상도</td><td>25×75 → 320×960 확대, 640×480 은 그대로</td><td><span class="tag t-good">통과</span></td></tr>
+<tr><td class="n">8</td><td>모의 백엔드</td><td>전송 횟수 일치</td><td><span class="tag t-good">통과</span></td></tr>
+</table>
+
+<h3>4.2 제스처 의미 검증 — 정답을 아는 실사진 5장</h3>
+<p>"펴야 하는 손가락의 평균 &lt; 굽혀야 하는 손가락의 평균" 을 검사한다.
+사람마다 다른 절대 가동범위와 무관한 기준이다.</p>
+<table>
+<tr><th>제스처</th><th class="n">엄지</th><th class="n">엄지보조</th><th class="n">검지</th><th class="n">중지</th><th class="n">약지</th><th class="n">소지</th><th>판정</th></tr>
+<tr><td>손 펴기(보)</td><td class="n">72</td><td class="n">72</td><td class="n">89</td><td class="n">27</td><td class="n">12</td><td class="n">113</td><td><span class="tag t-good">통과</span> 폄평균 60 &lt; 400</td></tr>
+<tr><td>주먹(바위)</td><td class="n">742</td><td class="n">742</td><td class="n">847</td><td class="n">811</td><td class="n">747</td><td class="n">692</td><td><span class="tag t-good">통과</span> 쥠평균 774 &gt; 600</td></tr>
+<tr><td>브이(가위)</td><td class="n">911</td><td class="n">911</td><td class="n">93</td><td class="n">90</td><td class="n">618</td><td class="n">758</td><td><span class="tag t-good">통과</span> 폄 92 &lt; 쥠 688</td></tr>
+<tr><td>엄지 척</td><td class="n">115</td><td class="n">115</td><td class="n">995</td><td class="n">993</td><td class="n">976</td><td class="n">958</td><td><span class="tag t-good">통과</span> 폄 115 &lt; 쥠 980</td></tr>
+<tr><td>OK 사인</td><td class="n">152</td><td class="n">152</td><td class="n">485</td><td class="n">119</td><td class="n">89</td><td class="n">68</td><td><span class="tag t-good">통과</span> 폄 92 &lt; 쥠 485</td></tr>
+</table>
+<p>저장소 프리셋과 비교하면 손 펴기·브이·엄지 척은 거의 그대로 재현되고,
+주먹의 엄지(742 vs 1000)와 OK 의 엄지(152 vs 600)만 3.4절의 한계 때문에 낮게 나온다.</p>
+
+<h3>4.3 영상·웹캠 처리</h3>
+<table>
+<tr><th>대상</th><th class="n">프레임</th><th class="n">손 검출</th><th class="n">처리 속도</th><th>비고</th></tr>
+<tr><td>저장소 시연영상 1080×1920, 40.8초</td><td class="n">1225</td><td class="n">1221 (99.7%)</td>
+    <td class="n">78.0 fps</td><td>창 없이(headless)</td></tr>
+<tr><td>같은 영상 + 주석 영상 기록</td><td class="n">1225</td><td class="n">1221 (99.7%)</td>
+    <td class="n">24.9 fps</td><td>골격·한글 표시 렌더링 포함</td></tr>
+<tr><td>USB 웹캠 640×480 실시간</td><td class="n">240</td><td class="n">0 (손 없음)</td>
+    <td class="n">27.5 fps</td><td>카메라 상한. 촬영·처리 경로 정상</td></tr>
+</table>
+<p>모두 <b>CPU 추론</b>이다. RTX 3060 Ti 의 VRAM 을 전혀 쓰지 않으므로,
+Isaac Lab 등 GPU 작업과 동시에 돌려도 VRAM 8GB 제약에 영향이 없다.</p>
+<p class="src">증거물: <code>결과/검증_주석영상.mp4</code>(눈으로 확인용),
+<code>결과/검증_전체영상.csv</code>(1225프레임 수치), <code>결과/검증실행_*.log</code></p>
+
+<h3>4.4 로봇 실기 구동 — 명령을 보낸 것과 로봇이 움직인 것은 다르다</h3>
+<p>
+전송 함수가 예외 없이 끝나도, 전원이 없거나 모터가 걸려 있으면 손은 그대로다.
+그래서 <b>보낸 값과 로봇에서 되읽은 실제 위치를 대조</b>했다
+(<code>--readback</code> 옵션, <code>tests/실기_구동시험.py</code>).
+</p>
+
+<h4 style="margin:18px 0 6px">(1) 프리셋 제스처 7종 구동 — <span class="tag t-good">7/7 통과</span></h4>
+<div class="box">
+  <b>판정 기준을 폄과 쥠으로 나눈 이유</b>
+  <b style="display:inline">폄(0) 방향에는 방해가 없다.</b> 손가락이 벌어지는 쪽이라 서로 부딪히지 않으므로
+  정확히 도달해야 하고, 못 하면 진짜 고장이다. 시작·종료 시 손을 펴는 안전 동작과도 직결된다.
+  <br><br>
+  <b style="display:inline">쥠(1000) 방향은 손가락끼리 맞닿는다.</b> 엄지는 접힌 손가락 위에 얹혀 더 못 들어가고,
+  주먹에서는 검지마저 엄지에 막힌다. 그러므로 이 방향은 '목표까지 갔는가'가 아니라
+  '충분히 움직였는가(400 이상)'로 본다. 그렇게 하지 않으면 정상 동작을 영영 '불일치'로
+  표시하게 되어 시험이 쓸모없어진다.
+</div>
+<table>
+<tr><th>제스처</th><th class="n">엄지</th><th class="n">엄지보조</th><th class="n">검지</th><th class="n">중지</th><th class="n">약지</th><th class="n">소지</th><th>판정</th></tr>
+<tr><td>손 펴기 — 명령</td><td class="n">0</td><td class="n">0</td><td class="n">0</td><td class="n">0</td><td class="n">0</td><td class="n">0</td><td rowspan="2"><span class="tag t-good">일치</span> 최대차 1</td></tr>
+<tr><td>손 펴기 — 실측</td><td class="n">0</td><td class="n">1</td><td class="n">0</td><td class="n">0</td><td class="n">0</td><td class="n">0</td></tr>
+<tr><td>주먹 — 명령</td><td class="n">1000</td><td class="n">1000</td><td class="n">1000</td><td class="n">1000</td><td class="n">1000</td><td class="n">1000</td><td rowspan="2"><span class="tag t-good">통과</span> 엄지·엄지보조·검지가 접촉으로 막힘</td></tr>
+<tr><td>주먹 — 실측</td><td class="n">635</td><td class="n">489</td><td class="n">671</td><td class="n">1000</td><td class="n">999</td><td class="n">999</td></tr>
+<tr><td>브이 — 명령</td><td class="n">1000</td><td class="n">1000</td><td class="n">0</td><td class="n">0</td><td class="n">1000</td><td class="n">1000</td><td rowspan="2"><span class="tag t-good">통과</span> 엄지가 접힌 약지·소지에 막힘</td></tr>
+<tr><td>브이 — 실측</td><td class="n">740</td><td class="n">988</td><td class="n">0</td><td class="n">0</td><td class="n">999</td><td class="n">999</td></tr>
+<tr><td>엄지 척 — 명령</td><td class="n">0</td><td class="n">0</td><td class="n">1000</td><td class="n">1000</td><td class="n">1000</td><td class="n">1000</td><td rowspan="2"><span class="tag t-good">일치</span> 최대차 49</td></tr>
+<tr><td>엄지 척 — 실측</td><td class="n">0</td><td class="n">49</td><td class="n">999</td><td class="n">1000</td><td class="n">999</td><td class="n">999</td></tr>
+<tr><td>반쯤 쥐기 — 명령</td><td class="n">500</td><td class="n">500</td><td class="n">500</td><td class="n">500</td><td class="n">500</td><td class="n">500</td><td rowspan="2"><span class="tag t-good">일치</span> 최대차 1</td></tr>
+<tr><td>반쯤 쥐기 — 실측</td><td class="n">500</td><td class="n">499</td><td class="n">500</td><td class="n">499</td><td class="n">500</td><td class="n">500</td></tr>
+</table>
+<div class="box warn">
+  <b>주먹에서 엄지가 덜 닫히는 것은 기구적 한계다 — 소프트웨어 결함이 아니다</b>
+  조건을 바꿔 가며 원인을 갈랐다.
+  <table style="margin-top:8px">
+  <tr><th>조건</th><th class="n">엄지 실제 도달 (목표 1000)</th></tr>
+  <tr><td>네 손가락 편 상태에서 엄지만 쥠</td><td class="n"><b>989</b></td></tr>
+  <tr><td>같은 조건, 이동 시간 2초</td><td class="n"><b>990</b></td></tr>
+  <tr><td>같은 조건, 4초 대기</td><td class="n"><b>988</b></td></tr>
+  <tr><td>네 손가락을 먼저 쥔 뒤 엄지</td><td class="n">656</td></tr>
+  <tr><td>여섯 축 동시에 1000</td><td class="n">631</td></tr>
+  </table>
+  시간을 늘려도 달라지지 않고, 방해가 없을 때만 989까지 간다.
+  전류도 200 으로 보호 기준 500 미만이라 과전류 보호가 아니다.
+  <b style="display:inline">접힌 손가락에 엄지가 물리적으로 막히는 것</b>이다.
+  사람 손도 주먹을 쥘 때 엄지가 손바닥까지 파고들지 않는다.
+</div>
+
+<h4 style="margin:18px 0 6px">(2) 웹캠 → 로봇 실시간 구동 (40초)</h4>
+<p>카메라 앞에서 손을 폈다 쥐었다 하며 실제로 구동했다.</p>
+<table>
+<tr><th class="n">처리 프레임</th><th class="n">손 검출</th><th class="n">검출 신뢰도</th><th class="n">로봇 전송</th><th class="n">처리 속도</th><th>손 방향</th></tr>
+<tr><td class="n">1100</td><td class="n"><b>928 (84.4%)</b></td><td class="n">0.93</td><td class="n"><b>244 회</b></td><td class="n">28.8 fps</td><td>Right 928프레임</td></tr>
+</table>
+<table>
+<tr><th>구간</th><th class="n">엄지</th><th class="n">엄지보조</th><th class="n">검지</th><th class="n">중지</th><th class="n">약지</th><th class="n">소지</th><th>자세</th></tr>
+<tr><td>12~16초</td><td class="n">363</td><td class="n">363</td><td class="n">372</td><td class="n">276</td><td class="n">368</td><td class="n">520</td><td>반쯤 쥠</td></tr>
+<tr><td>16~20초</td><td class="n">509</td><td class="n">509</td><td class="n">977</td><td class="n">980</td><td class="n">978</td><td class="n">991</td><td><b>주먹</b></td></tr>
+<tr><td>20~24초</td><td class="n">476</td><td class="n">476</td><td class="n">971</td><td class="n">984</td><td class="n">983</td><td class="n">984</td><td><b>주먹</b></td></tr>
+<tr><td>28~32초</td><td class="n">148</td><td class="n">148</td><td class="n">111</td><td class="n">122</td><td class="n">95</td><td class="n">97</td><td>손 폄</td></tr>
+<tr><td>36~40초</td><td class="n">0</td><td class="n">0</td><td class="n">0</td><td class="n">0</td><td class="n">0</td><td class="n">0</td><td>손 폄</td></tr>
+</table>
+<p>여섯 축 모두 <b>0 ~ 979~998</b> 의 전 범위를 사용했다. 사람 손 동작이 그대로 반영된 것이다.</p>
+
+<h4 style="margin:18px 0 6px">(3) 명령 대 로봇 실측 대조 (영상 42초, 전송마다 되읽기)</h4>
+<table>
+<tr><th>손가락</th><th class="n">명령 평균</th><th class="n">로봇 실측 평균</th><th class="n">평균 절대오차</th><th class="n">상관계수</th></tr>
+<tr><td>엄지</td><td class="n">333</td><td class="n">332</td><td class="n">7.0</td><td class="n">0.846</td></tr>
+<tr><td>엄지보조</td><td class="n">333</td><td class="n">332</td><td class="n">7.2</td><td class="n">0.829</td></tr>
+<tr><td>검지</td><td class="n">445</td><td class="n">442</td><td class="n">14.3</td><td class="n">0.727</td></tr>
+<tr><td>중지</td><td class="n">461</td><td class="n">457</td><td class="n">22.0</td><td class="n">0.768</td></tr>
+<tr><td>약지</td><td class="n">416</td><td class="n">411</td><td class="n">25.0</td><td class="n">0.631</td></tr>
+<tr><td>소지</td><td class="n">396</td><td class="n">392</td><td class="n">23.7</td><td class="n">0.726</td></tr>
+</table>
+<p>
+1000 척도에서 평균 오차 <b>7~25 (0.7~2.5%)</b>. 실측은 모터 이동 시간 때문에 명령보다
+한 박자 늦게 따라오므로 오차가 0 이 될 수는 없다. 6초 구간 평균으로 보면
+명령과 실측이 거의 그대로 겹친다(예: 12~18초 명령 <code>330 330 456 461 412 395</code> /
+실측 <code>329 330 456 461 413 395</code>).
+</p>
+<p class="src">증거물: <code>결과/실기_웹캠구동.csv</code>, <code>결과/실기_명령대실측.csv</code>,
+<code>결과/실기_영상구동.csv</code></p>
+
+<h3>4.5 오류 처리 경로</h3>
+<p>모든 실패 경로를 실제로 실행해, 파이썬 역추적 대신 사람이 읽을 수 있는 안내로 끝나는지 확인했다.</p>
+<table>
+<tr><th>상황</th><th>결과</th></tr>
+<tr><td>카메라 없음 / 사용 중</td><td><code>--list-cameras</code> 안내 + 영상파일 대안 제시</td></tr>
+<tr><td>입력 파일 없음</td><td>경로를 밝힌 안내로 중단</td></tr>
+<tr><td><code>--model</code> 경로 오류</td><td>지정 파일이 없다고 명시 (기본 모델로 조용히 넘어가지 않음)</td></tr>
+<tr><td>ROS 2 미소스</td><td><code>source</code> 해야 할 명령 2줄과 <code>--backend none</code> 대안 안내</td></tr>
+<tr><td>SDK 폴더 없음</td><td>0.5초 내 중단 + 찾아본 경로 목록 + <code>brainco-hand-sdk</code> 내려받기 안내</td></tr>
+<tr><td>로봇 무응답</td><td><b>24V DC 어댑터 확인</b>을 첫 번째로 안내</td></tr>
+<tr><td><code>dialout</code> 그룹 없음</td><td><code>usermod</code> 명령과 재로그인 없이 쓰는 <code>sg dialout</code> 방법 안내</td></tr>
+</table>
+
+<h2>5. 작업 중 발견한 함정</h2>
+
+<div class="box bad">
+  <b>함정 1 — 입력 해상도가 낮으면 오류 없이 '조용히 틀린 값'이 나온다</b>
+  위키미디어의 손동작 아이콘 원본은 <b style="display:inline">25×75 픽셀</b>이었다.
+  그대로 넣었더니 손 검출은 성공하는데 손가락이 뒤바뀐 값이 나왔다.
+  <table style="margin-top:8px">
+  <tr><th>가리키기 아이콘</th><th class="n">검지</th><th class="n">중지</th><th class="n">약지</th><th class="n">소지</th><th>해석</th></tr>
+  <tr><td>원본 25×75</td><td class="n">947</td><td class="n">878</td><td class="n">885</td><td class="n">99</td><td>검지가 굽고 소지가 폄 — <b style="display:inline">완전히 반대</b></td></tr>
+  <tr><td>4배 확대</td><td class="n">101</td><td class="n">893</td><td class="n">952</td><td class="n">934</td><td>검지만 폄 — 정답</td></tr>
+  </table>
+  → <code>ensure_min_size()</code> 를 넣어, 짧은 변이 320픽셀 미만이면 확대하도록 했다
+  (<code>--min-size</code>). 웹캠에서는 발동하지 않는다.
+</div>
+
+<div class="box bad">
+  <b>함정 2 — 평면 일러스트는 검증 자료로 쓸 수 없다</b>
+  MediaPipe 는 <b style="display:inline">실제 손 사진</b>으로 학습된 모델이다.
+  음영도 질감도 없는 벡터 그림에서는 확대해도 관절 위치를 신뢰할 수 없다.
+  처음에 일러스트로 시험했을 때 3건이 '통과'했는데, 이는 우연이었다.
+  → 판정 자료를 <b style="display:inline">실사진만</b>으로 교체했다.
+</div>
+
+<div class="box bad">
+  <b>함정 3 — OpenCV 가 실패한 카메라를 FFMPEG 로 열어 '정상'이라 보고한다</b>
+  <code>cv2.VideoCapture(1)</code> 은 V4L2 로 실패한 뒤 조용히 FFMPEG 로 되돌아가
+  메타데이터 전용 장치인 <code>/dev/video1</code> 을 '사용 가능'으로 보고했다.
+  → 백엔드를 <code>cv2.CAP_V4L2</code> 로 명시하고, 실제로 한 프레임을 읽어 본 뒤 판정하도록 고쳤다.
+</div>
+
+<div class="box warn">
+  <b>함정 4 — mediapipe 1.0.1 은 종료 중 예외를 뱉는다</b>
+  <code>HandLandmarker</code> 를 명시적으로 닫지 않고 인터프리터가 내려가면
+  <code>__del__</code> 안에서 <code>TypeError: 'NoneType' object is not callable</code> 역추적이 출력된다.
+  → 연결 실패로 중단되는 경로까지 포함해 항상 먼저 <code>close()</code> 하도록 했다.
+</div>
+
+<div class="box warn">
+  <b>함정 5 — 작업 스레드에서 사라지는 예외</b>
+  SDK 백엔드는 별도 스레드에서 asyncio 루프를 돌린다.
+  SDK 폴더가 없을 때 그 스레드에서 난 예외가 본 스레드에 전달되지 않아,
+  20초를 기다린 뒤 "시간 초과"라는 <b style="display:inline">엉뚱한 진단</b>을 냈다.
+  → 예외를 잡아 즉시 전달하도록 고쳤다. 지금은 0.5초 안에 정확한 원인을 알려 준다.
+</div>
+
+<div class="box bad">
+  <b>함정 6 — 계정이 <code>dialout</code> 그룹에 없으면 포트가 아예 안 열린다</b>
+  로봇을 붙였는데 <code>/dev/ttyUSB0</code> 이 보이는데도 열리지 않았다.
+  <code>toprobot</code> 이 <code>dialout</code> 그룹에 없어서였다(읽기·쓰기 권한 모두 False).
+  <pre>sudo usermod -aG dialout $USER</pre>
+  그룹 변경은 <b style="display:inline">다음 로그인부터</b> 반영된다.
+  재로그인 없이 바로 쓰려면 <code>sg dialout -c "&lt;명령&gt;"</code> 으로 새 셸을 띄운다.
+  <code>실행_웹캠_로봇.sh</code> 는 이 상황을 스스로 판단해 처리한다.
+</div>
+
+<div class="box bad">
+  <b>함정 7 — SDK 가 닫힌 이벤트 루프로 콜백을 넣는다</b>
+  SDK 는 내부(Rust) 스레드에서 파이썬 asyncio 루프로 콜백을 넣는다.
+  <code>asyncio.run()</code> 은 코루틴이 끝나는 즉시 루프를 닫으므로,
+  뒤늦게 도착한 콜백이 <code>RuntimeError: Event loop is closed</code> 역추적을 뱉었다.
+  → 루프를 직접 만들어 실행하고, 끝난 뒤 <b style="display:inline">0.3초 더 돌려 잔여 콜백을 배출한 다음</b>
+  닫도록 고쳤다. 루프 종료 시점의 예외는 예외 처리기로 삼킨다.
+</div>
+
+<div class="box warn">
+  <b>함정 8 — 영상 파일은 로봇보다 훨씬 빨리 재생된다</b>
+  40.8초짜리 영상이 이 PC 에서 16초 만에 처리됐다. 화면만 볼 때는 상관없지만
+  로봇을 붙이면 손가락이 물리적으로 움직일 시간보다 명령이 빨리 도착해 동작이 뭉개진다.
+  → <code>--pace</code> 를 넣어, 로봇에 연결됐을 때는 원래 속도(초당 프레임 수)로 늦춘다.
+  적용 후 42.7초로 원본과 맞았다.
+</div>
+
+<div class="box">
+  <b>참고 — 무해한 경고</b>
+  <code>QFontDatabase: Cannot find font directory ...</code> 는 OpenCV 의 Qt 백엔드 경고로
+  동작에 영향이 없다. <code>Feedback manager requires a model with a single signature inference</code>,
+  <code>Using NORM_RECT without IMAGE_DIMENSIONS</code> 도 MediaPipe 의 정상 동작 중 경고다.
+</div>
+
+<h2>6. 제조사 SDK 저장소의 이관</h2>
+<div class="box warn">
+  <b>공식 SDK 저장소가 이관되었다. 새 저장소에는 MIT 라이선스가 있다.</b>
+  <table style="margin-top:8px">
+  <tr><th>저장소</th><th>상태</th><th>LICENSE</th></tr>
+  <tr><td><code>BrainCoTech/stark-serialport-example</code> (구)</td>
+      <td>내용은 남아 있으나 README 는 이관 안내</td>
+      <td><span class="tag t-bad">없음</span></td></tr>
+  <tr><td><code>BrainCoTech/brainco-hand-sdk</code> (신)</td>
+      <td>현행 유지 대상. <code>python/revo2/revo2_utils.py</code> 등 구조 동일</td>
+      <td><span class="tag t-good">MIT</span></td></tr>
+  </table>
+  구 저장소 주소를 안내하는 문서를 아직 쓰고 있다면 새 주소로 갱신해야 한다.
+</div>
+<p>
+본 검증에는 새 저장소(MIT)를 <code>~/brainco-hand-sdk</code> 에 내려받아 사용했고,
+<code>bc-stark-sdk</code> 는 <b>2.0.5</b> 를 가상환경 안에만 설치했다.
+이전 판(0.9.5)에서 메이저 버전이 올라갔으나,
+<code>set_finger_positions_and_durations</code> · <code>set_finger_unit_mode</code> ·
+<code>FingerUnitMode.Normalized</code> · <code>modbus_close</code> 등
+이 프로그램이 쓰는 API 는 <b style="display:inline">그대로 존재한다</b>(실행으로 확인).
+</p>
+<p class="src">
+※ 제조사 SDK 는 본 저장소에 <b style="display:inline">포함하지 않는다.</b>
+이용자가 위 배포처에서 직접 내려받는다. 라이선스 관계는 <code>저작권_출처.md</code> 참조.
+</p>
+
+<h2>7. 남은 한계와 미검증 항목</h2>
+<table>
+<tr><th>항목</th><th>상태</th><th>내용</th></tr>
+<tr><td>SDK 백엔드 (경로 A)</td><td><span class="tag t-good">검증됨</span></td>
+    <td>Revo2 Basic 실물로 확인. 제스처 7종 구동, 웹캠 실시간 244회 구동,
+        명령 대 실측 평균오차 7~25 (4.4절)</td></tr>
+<tr><td>실시간 손 추종</td><td><span class="tag t-good">검증됨</span></td>
+    <td>웹캠 앞에서 손을 폈다 쥐었다 하며 928프레임 검출, 로봇이 그대로 따라 움직였다</td></tr>
+<tr><td>ROS 2 백엔드 (경로 B)</td><td><span class="tag t-warn">미검증</span></td>
+    <td>이 PC 에 <code>ros2_stark_msgs</code> 워크스페이스가 없다. 메시지 규격은 저장소
+        <code>keyboard_control.py</code> 와 동일하게 맞췄으나 실제 발행은 확인하지 못했다.
+        <b style="display:inline">경로 A 로 같은 일을 할 수 있으므로 실사용에 지장은 없다</b></td></tr>
+<tr><td>주먹에서 엄지</td><td><span class="tag t-bad">기구 한계</span></td>
+    <td>접힌 네 손가락에 막혀 656 까지만 닫힌다. 네 손가락이 펴진 상태에서 엄지만 쥐면
+        989 에 도달한다. 소프트웨어 문제가 아니다 (4.4절)</td></tr>
+<tr><td>주먹을 정면으로</td><td><span class="tag t-bad">한계</span></td>
+    <td>손가락 구조가 하나도 안 보이면 MediaPipe 가 손을 찾지 못한다.
+        신뢰도를 0.05 까지 낮춰도 마찬가지다. 이때는 <code>--relax-timeout</code> 이 동작해
+        로봇 손이 스스로 펴진다</td></tr>
+<tr><td>엄지보조</td><td><span class="tag t-bad">한계</span></td>
+    <td>2D 카메라 한 대로는 원리적으로 복원되지 않는다 (3.4절)</td></tr>
+<tr><td>두 손 동시</td><td>—</td><td><code>num_hands=1</code> 고정. 로봇손이 한 개이므로 그대로 두었다</td></tr>
+</table>
+<div class="box good">
+  <b>실기 검증 완료</b>
+  웹캠에 손을 보이면 Revo2 로봇손이 실제로 따라 움직인다.
+  <code>./실행_웹캠_로봇.sh</code> 하나로 재현할 수 있다.
+  ROS 2 백엔드만 남았으나, 경로 A(SDK 직접)가 검증되었으므로 실사용에 지장은 없다.
+</div>
+
+<h2>8. 이 저장소에서 재현하기</h2>
+<pre>./설치.sh                # 가상환경·의존성·모델을 한 번에
+./검증_전체.sh           # 이 보고서의 수치를 그대로 재현한다
+./실행_웹캠_로봇.sh      # 웹캠 → 로봇 실제 구동</pre>
+<p class="src">
+로봇이 없으면 5단계만 건너뛰고 나머지는 그대로 돌아간다.
+카메라가 없어도 <code>media/시험입력_짧은판.mp4</code> 로 추적 성능을 확인할 수 있다.
+</p>
+
+<hr>
+<p class="src">
+보고서 생성 2026-09-03 · 모든 수치는 이 PC 에서 실제 실행한 결과이며,
+원자료는 <code>결과/</code> 폴더에 그대로 남겨 두었습니다.
+</p>
+
+</div>
+</body>
+</html>
