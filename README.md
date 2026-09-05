@@ -10,7 +10,7 @@
 [![License](https://img.shields.io/badge/license-Apache_2.0-lightgrey.svg)](./LICENSE)
 [![DOI](https://zenodo.org/badge/1357701882.svg)](https://doi.org/10.5281/zenodo.22313938)
 
-## 🎬 실기 구동 시연 (Live Demonstration)
+## 🎬 시연 영상 (Live Demonstration)
 
 <div align="center">
   <img src="./media/손추적_시연.webp" width="330" alt="웹캠 손추적으로 Revo2 로봇손 실시간 구동">
