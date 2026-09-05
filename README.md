@@ -8,6 +8,7 @@
 [![Python](https://img.shields.io/badge/python-3.10.12-green.svg)](https://www.python.org/)
 [![ROS 2](https://img.shields.io/badge/ROS_2-Humble-blue.svg)](https://docs.ros.org/en/humble/)
 [![License](https://img.shields.io/badge/license-Apache_2.0-lightgrey.svg)](./LICENSE)
+[![DOI](https://zenodo.org/badge/1357701882.svg)](https://doi.org/10.5281/zenodo.22313938)
 
 ## 🎬 실기 구동 시연 (Live Demonstration)
 
