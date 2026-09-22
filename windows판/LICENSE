@@ -1,0 +1,119 @@
+BrainCo Revo2 Hand — Camera Hand Tracking
+Copyright (c) 2026 pi2jw (akffkdzkdngmrdn87). All rights reserved.
+모든 권리 보유.
+
+================================================================================
+ 한국어
+================================================================================
+
+이 저작물(이하 "본 소프트웨어")의 저작권은 전적으로 저작권자에게 있습니다.
+저작권자는 아래에 명시적으로 허용한 것 외의 모든 권리를 보유합니다.
+
+--------------------------------------------------------------------------------
+1. 허용하는 것
+--------------------------------------------------------------------------------
+
+  · 개인적이고 비상업적인 목적의 열람, 내려받기, 실행
+  · 학습·연구·평가를 위한 개인적 이용
+  · 출처를 밝힌 인용 (저작권법이 허용하는 범위 안에서)
+
+--------------------------------------------------------------------------------
+2. 금지하는 것 — 저작권자의 사전 서면 허락 없이는 할 수 없습니다
+--------------------------------------------------------------------------------
+
+  · 상업적 이용
+      판매, 대여, 유상 서비스 제공, 광고 수익, 사내 업무에의 활용을 포함한
+      일체의 영리 목적 이용
+
+  · 수정
+      개작, 번역, 편집, 2차적 저작물의 작성
+
+  · 재배포
+      복제물의 배포, 공중송신, 전시, 다른 저장소·매체·제품에의 포함이나 재게시
+
+위 허락을 구하려면 아래 연락처로 문의하십시오.
+
+--------------------------------------------------------------------------------
+3. 제3자 구성요소 — 이 조건이 적용되지 않습니다
+--------------------------------------------------------------------------------
+
+본 소프트웨어는 제3자가 만든 저작물을 포함하거나 함께 배포합니다.
+그 부분에는 위 제1·2항이 아니라 **각 저작물의 원래 라이선스**가 그대로
+적용되며, 본 문서는 그 권리를 제한하지 않습니다.
+
+무엇이 제3자 저작물이고 어떤 라이선스인지는 NOTICE 와 저작권_출처.md 에
+전부 밝혀 두었습니다.
+
+--------------------------------------------------------------------------------
+4. 보증의 부인
+--------------------------------------------------------------------------------
+
+본 소프트웨어는 "있는 그대로(AS IS)" 제공되며, 상품성·특정 목적 적합성·
+비침해를 포함한 어떠한 명시적·묵시적 보증도 하지 않습니다.
+
+--------------------------------------------------------------------------------
+5. 책임의 제한
+--------------------------------------------------------------------------------
+
+저작권자는 본 소프트웨어의 사용 또는 사용 불능으로 발생한 직접·간접·부수적·
+특별·결과적 손해에 대하여 어떠한 책임도 지지 않습니다.
+
+본 소프트웨어는 로봇 하드웨어를 움직입니다. 사람과 장비의 안전은 전적으로
+이용자의 책임입니다.
+
+--------------------------------------------------------------------------------
+6. 종전 배포분에 관하여
+--------------------------------------------------------------------------------
+
+2026-09-22 이전에 Apache License 2.0 으로 배포된 판(v1.0.0 및 해당 Zenodo
+기록)은 그 시점의 라이선스가 그대로 적용됩니다. 본 문서는 그 이후에
+배포되는 판부터 적용됩니다.
+
+--------------------------------------------------------------------------------
+7. 문의
+--------------------------------------------------------------------------------
+
+  GitHub : https://github.com/akffkdzkdngmrdn87
+
+================================================================================
+ English
+================================================================================
+
+All rights reserved by the copyright holder. Except as expressly permitted
+below, no rights are granted.
+
+PERMITTED
+  · Viewing, downloading and running for personal, non-commercial purposes
+  · Personal use for study, research and evaluation
+  · Quotation with attribution, within the limits of applicable copyright law
+
+NOT PERMITTED without the prior written permission of the copyright holder
+  · Commercial use of any kind, including sale, rental, paid services,
+    advertising revenue, and use in the course of business
+  · Modification, adaptation, translation, or creation of derivative works
+  · Redistribution, public transmission, display, or inclusion in any other
+    repository, medium or product
+
+THIRD-PARTY COMPONENTS
+  This software contains or is distributed together with third-party works.
+  Those parts remain under their own original licenses, which this document
+  does not restrict. See NOTICE and 저작권_출처.md for the full list.
+
+NO WARRANTY
+  Provided "AS IS", without warranty of any kind, express or implied,
+  including merchantability, fitness for a particular purpose and
+  non-infringement.
+
+LIMITATION OF LIABILITY
+  The copyright holder shall not be liable for any direct, indirect,
+  incidental, special or consequential damages arising from the use of or
+  inability to use this software. This software drives robotic hardware;
+  the safety of people and equipment is solely the user's responsibility.
+
+PRIOR RELEASES
+  Versions distributed under the Apache License 2.0 before 2026-09-22
+  (v1.0.0 and the corresponding Zenodo record) remain under that license.
+  This document applies to releases made after that date.
+
+CONTACT
+  GitHub: https://github.com/akffkdzkdngmrdn87

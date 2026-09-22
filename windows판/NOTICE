@@ -1,0 +1,62 @@
+BrainCo Revo2 Hand — Camera Hand Tracking
+Copyright (c) 2026 pi2jw (akffkdzkdngmrdn87). All rights reserved.
+
+본 저작물은 독점 라이선스로 배포됩니다.
+저작권자의 사전 서면 허락 없이 상업적 이용·수정·재배포를 할 수 없습니다.
+전문은 LICENSE 를 보십시오.
+
+This product is distributed under a proprietary license.
+Commercial use, modification and redistribution are not permitted without the
+prior written permission of the copyright holder. See LICENSE.
+
+────────────────────────────────────────────────────────────────────────────
+제3자 구성요소 (Third-party components)
+────────────────────────────────────────────────────────────────────────────
+
+★아래 제3자 저작물에는 **LICENSE 의 제한이 적용되지 않습니다.**
+  각 저작물의 원래 라이선스가 그대로 적용되며, 본 저장소는 그 권리를
+  제한하지 않습니다.
+
+■ 이 저장소에 함께 담아 배포하는 것
+
+  hand_landmarker.task       Apache License 2.0   Copyright (c) Google LLC
+      손 랜드마크 모델. models/ 와 windows판/models/ 에 들어 있습니다.
+      원본을 고치지 않고 그대로 담았습니다.
+
+  brainco-hand-sdk           MIT License          Copyright (c) 2026 BrainCoTech
+      제조사 SDK. windows판/brainco-hand-sdk/ 에 들어 있습니다.
+      원본을 고치지 않고 그대로 담았으며, 라이선스 전문(LICENSE)을 함께 둡니다.
+      원 출처: https://github.com/BrainCoTech/brainco-hand-sdk
+
+■ 담지 않고, 설치할 때 각 배포처에서 내려받는 것
+
+  MediaPipe                  Apache License 2.0   Copyright (c) Google LLC
+  OpenCV (opencv-python)     Apache License 2.0   Copyright (c) OpenCV team
+  NumPy                      BSD 3-Clause         Copyright (c) NumPy Developers
+  Pillow                     MIT-CMU              Copyright (c) Jeffrey A. Clark and contributors
+  bc-stark-sdk               MIT License          Copyright (c) 2026 BrainCoTech
+
+시험용 손동작 사진은 위키미디어 공용의 자유 이용 저작물이며, 저장소에 포함하지
+않습니다. 저작자·라이선스·출처는 저작권_출처.md 에 전부 밝혀 두었습니다.
+
+시연 영상과 검증용 입력 영상(media/)은 저작권자가 직접 촬영한 것입니다.
+
+────────────────────────────────────────────────────────────────────────────
+상표 (Trademarks)
+────────────────────────────────────────────────────────────────────────────
+
+BrainCo, Revo2, RevoLimb 는 BrainCo, Inc. 의 상표입니다.
+그 밖에 이 저장소에 등장하는 상표는 각 소유자에게 귀속됩니다.
+
+본 저장소는 BrainCo, Inc. 를 비롯한 어느 회사와도 제휴·후원·보증 관계가 없는
+제3자 독립 구현입니다. 상표는 호환 대상 하드웨어와 동작 환경을 지칭하기 위해서만
+사용합니다.
+
+────────────────────────────────────────────────────────────────────────────
+종전 배포분 (Prior releases)
+────────────────────────────────────────────────────────────────────────────
+
+2026-09-22 이전에 Apache License 2.0 으로 배포된 판(v1.0.0 및 해당 Zenodo
+기록)은 그 시점의 라이선스가 그대로 적용됩니다.
+
+자세한 내용은 저작권_출처.md 를 보십시오.
