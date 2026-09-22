@@ -1,4 +1,4 @@
-# BrainCo Revo2 Hand — Camera Hand Tracking (Ubuntu · MediaPipe Tasks)
+# BrainCo Revo2 Hand — Camera Hand Tracking (Ubuntu · Windows · MediaPipe Tasks)
 
 **웹캠에 비친 사람 손을 MediaPipe 로 추정하여 BrainCo Revo2 로봇손이 그대로 따라 움직이게 하는 제어기**
 
