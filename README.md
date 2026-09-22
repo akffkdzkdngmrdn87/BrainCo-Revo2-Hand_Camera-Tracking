@@ -24,7 +24,7 @@
 > **각자의 원래 라이선스**가 그대로 적용됩니다 → [`NOTICE`](./NOTICE)
 >
 > ⚠2026-09-22 이전에 Apache License 2.0 으로 배포된 `v1.0.0` 은 **그 라이선스가 그대로 유효**합니다.
-[![DOI](https://zenodo.org/badge/1357701882.svg)](https://doi.org/10.5281/zenodo.22313938)
+
 
 ---
 
