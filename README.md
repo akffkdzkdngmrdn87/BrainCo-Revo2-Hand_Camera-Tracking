@@ -9,7 +9,7 @@
 [![ROS 2](https://img.shields.io/badge/ROS_2-Humble-blue.svg)](https://docs.ros.org/en/humble/)
 [![License](https://img.shields.io/badge/license-Proprietary-critical.svg)](./LICENSE)
 [![Commercial use](https://img.shields.io/badge/%EC%83%81%EC%97%85%EC%A0%81%20%EC%9D%B4%EC%9A%A9-%EA%B8%88%EC%A7%80-red.svg)](./LICENSE)
-[![DOI](https://zenodo.org/badge/1349140823.svg)](https://doi.org/10.5281/zenodo.22138592)
+[![DOI](https://zenodo.org/badge/1357701882.svg)](https://doi.org/10.5281/zenodo.22313938)
 
 > ## ⛔ 라이선스 — 상업적 이용 · 수정 · 재배포를 허용하지 않습니다
 >
